@@ -86,103 +86,230 @@ def _ch(): return H - CY0 - 0.3
 
 
 # ══════════════════════════════════════════════════════════════════════
-# COVER
+# COVER v29 — Split Layout
 # ══════════════════════════════════════════════════════════════════════
 def make_cover(prs, req: PresentationRequest, T: Theme):
-    slide = blank_slide(prs)
-    _bg(slide, T, 'b')
-
-    # Top + bottom accent bars
-    tp = rect(slide, 0, 0, W, 0.44, T.accent_rgb)
-    if tp: multi_stop_gradient(tp, [(0, T.bg), (30, T.accent), (70, T.accent2), (100, T.bg)], 0)
-    bt = rect(slide, 0, H - 0.32, W, 0.32, T.accent_rgb)
-    if bt: gradient_fill(bt, T.accent_grad1, T.accent_grad2, 0)
-
-    # Institution badge
-    if req.institution:
-        ib = rrect(slide, W/2 - 10, 0.52, 20, 0.7, T.card_rgb, radius_pct=40)
-        if ib: set_solid_alpha(ib, 72)
-        txt(slide, req.institution, W/2 - 10, 0.52, 20, 0.7,
-            font=_FONT, size=11, bold=False, color=T.muted_rgb,
-            align=PP_ALIGN.CENTER, rtl=True, vcenter=True)
-
-    title_y = 1.28; title_h = 7.2
-    info_y = title_y + title_h + 0.24
-    info_h = max(0.5, H - 0.36 - info_y - 0.08)
-    cx = 1.8; cw = W - 3.6
-
-    # Premium cover frame (multi-layer)
-    premium_cover_frame(slide, cx, title_y, cw, title_h, T)
-
-    # Extract year
+    """
+    Split layout:
+    LEFT  = title card (gradient, large)
+    RIGHT = info panel (student/supervisor/specialization/year)
+    """
     import re as _re
-    _year_pat = _re.compile(r'\b\d{4}\s*[-–—]\s*\d{4}\b')
+
+    slide = blank_slide(prs)
+
+    # ── Full background ──────────────────────────────────────────────
+    bg(slide, T.bg_rgb)
+    gradient_rect(slide, 0, 0, W, H, T.grad2, T.grad1, angle=150)
+
+    # Ambient orbs
+    oval(slide, W - 12, -5,  16, 16, T.accent_rgb, alpha=5)
+    oval(slide, -5, H - 10,  14, 14, T.bg2_rgb,    alpha=40)
+    oval(slide, W * 0.35, H * 0.15, 8, 8, T.accent_rgb, alpha=4)
+    diamond(slide, W * 0.08, H * 0.08, 2.5, 2.5, T.accent_rgb, alpha=8)
+    diamond(slide, W * 0.78, H * 0.72, 2.0, 2.0, T.accent_rgb, alpha=6)
+    decorative_dots(slide, W - 7.5, H - 5.5, 6, 4, 0.14, 0.34, T.accent_rgb, alpha=9)
+    decorative_dots(slide, 0.8,     2.5,      4, 5, 0.13, 0.30, T.accent_rgb, alpha=8)
+
+    # ── Top accent bar ────────────────────────────────────────────────
+    top = rect(slide, 0, 0, W, 0.38, T.accent_rgb)
+    if top: multi_stop_gradient(top, [(0, T.bg), (35, T.accent), (65, T.accent2), (100, T.bg)], 0)
+
+    # ── Bottom accent bar ─────────────────────────────────────────────
+    bot = rect(slide, 0, H - 0.32, W, 0.32, T.accent_rgb)
+    if bot: multi_stop_gradient(bot, [(0, T.bg), (30, T.accent), (70, T.accent2), (100, T.bg)], 0)
+
+    # ── Layout constants ──────────────────────────────────────────────
+    PAD     = 0.55
+    GUTTER  = 0.42
+    RP_W    = 10.0           # right info panel width
+    RP_X    = W - PAD - RP_W
+    LP_X    = PAD
+    LP_W    = RP_X - PAD - GUTTER
+    PANEL_Y = 0.50
+    PANEL_H = H - PANEL_Y - 0.42
+
+    # ════════════════════════════════════════
+    # LEFT PANEL — Title card
+    # ════════════════════════════════════════
+    lc = rrect(slide, LP_X, PANEL_Y, LP_W, PANEL_H, T.card_rgb, radius_pct=14)
+    if lc:
+        multi_stop_gradient(lc, [(0, T.card), (60, T.bg2), (100, T.card)], 145)
+        shadow(lc, blur=28, dist=8, alpha=0.52)
+        glow(lc, T.accent.lstrip('#'), radius=32, alpha=0.10)
+
+    # Top accent strip
+    lt = rrect(slide, LP_X, PANEL_Y, LP_W, 0.48, T.accent_rgb, radius_pct=0)
+    if lt:
+        multi_stop_gradient(lt, [(0, T.accent), (50, T.accent2), (100, T.accent)], 0)
+        glow(lt, T.accent.lstrip('#'), radius=14, alpha=0.32)
+
+    # Right accent bar
+    accent_bar_v(slide, LP_X + LP_W - 0.28, PANEL_Y + 0.48, PANEL_H - 0.76, T, width=0.28)
+
+    # Bottom accent strip
+    lb = rrect(slide, LP_X, PANEL_Y + PANEL_H - 0.26, LP_W, 0.26, T.accent_rgb, radius_pct=0)
+    if lb: set_solid_alpha(lb, 42)
+
+    # Inner decorative diamonds
+    diamond(slide, LP_X + 0.35, PANEL_Y + 0.65, 1.2, 1.2, T.accent_rgb, alpha=12)
+    diamond(slide, LP_X + LP_W - 1.9, PANEL_Y + PANEL_H - 2.0, 1.0, 1.0, T.accent_rgb, alpha=8)
+
+    # Institution — top of left card
+    inst_y = PANEL_Y + 0.60
+    if req.institution:
+        txt(slide, req.institution,
+            LP_X + 0.42, inst_y, LP_W - 0.82, 0.78,
+            font=_FONT, size=10.5, bold=False, color=T.muted_rgb,
+            align=PP_ALIGN.CENTER, rtl=True, vcenter=True, line_spacing=1.15)
+
+    div1_y = inst_y + (0.84 if req.institution else 0.10)
+    hline(slide, LP_X + LP_W * 0.12, div1_y, LP_W * 0.76, T.muted_rgb, thickness=0.03)
+
+    # Title zone
+    title_zone_y = div1_y + 0.18
+    title_zone_h = PANEL_H - (title_zone_y - PANEL_Y) - 0.48
+
+    # Extract / clean title
+    _year_pat   = _re.compile(r'\b\d{4}\s*[-–—]\s*\d{4}\b')
     _year_match = _year_pat.search(req.title_ar or '')
     if _year_match:
-        _year_str = _year_match.group(0).strip()
-        _title_clean = _year_pat.sub('', req.title_ar).strip().rstrip('–—-').strip()
+        _year_str    = _year_match.group(0).strip()
+        _title_clean = _year_pat.sub('', req.title_ar).strip().rstrip('–—-،, ').strip()
     else:
-        _year_str = getattr(req, 'year', None) or ''
+        _year_str    = req.year or ''
         _title_clean = req.title_ar or ''
 
-    # Content-aware title sizing
-    title_len = len(_title_clean)
-    title_fs = 26 if title_len < 60 else 22 if title_len < 100 else 18 if title_len < 150 else 15
+    tl  = len(_title_clean)
+    tfs = 28 if tl < 40 else 24 if tl < 65 else 20 if tl < 100 else 17 if tl < 150 else 14
 
-    title_zone_h = title_h * 0.56
-    txt(slide, _title_clean, cx + 0.7, title_y + 0.48, cw - 1.4, title_zone_h,
-        font=_FONT, size=title_fs, bold=True, color=T.text_light_rgb,
-        align=PP_ALIGN.CENTER, rtl=True, vcenter=True, line_spacing=1.25)
+    txt(slide, _title_clean,
+        LP_X + 0.48, title_zone_y, LP_W - 0.90, title_zone_h,
+        font=_FONT, size=tfs, bold=True, color=T.text_light_rgb,
+        align=PP_ALIGN.CENTER, rtl=True, vcenter=True, line_spacing=1.28)
 
-    # Decorative divider
-    d1 = rect(slide, cx + cw * 0.12, title_y + 0.48 + title_zone_h + 0.1,
-              cw * 0.76, 0.06, T.accent_rgb)
-    if d1: multi_stop_gradient(d1, [(0, T.bg2), (50, T.accent), (100, T.bg2)], 0)
+    # ════════════════════════════════════════
+    # RIGHT PANEL — Info card
+    # ════════════════════════════════════════
+    rc = rrect(slide, RP_X, PANEL_Y, RP_W, PANEL_H, T.bg2_rgb, radius_pct=14)
+    if rc:
+        multi_stop_gradient(rc, [(0, T.bg2), (55, T.card), (100, T.bg2)], 145)
+        shadow(rc, blur=22, dist=6, alpha=0.44)
 
-    # Info zone
-    info_zone_y = title_y + 0.48 + title_zone_h + 0.28
-    info_zone_h = title_h - 0.48 - title_zone_h - 0.38
+    # Top accent strip
+    rt = rrect(slide, RP_X, PANEL_Y, RP_W, 0.48, T.accent_rgb, radius_pct=0)
+    if rt:
+        multi_stop_gradient(rt, [(0, T.accent2), (50, T.accent), (100, T.accent2)], 0)
+
+    # Left accent bar
+    accent_bar_v(slide, RP_X, PANEL_Y + 0.48, PANEL_H - 0.76, T, width=0.26)
+
+    # Bottom accent strip
+    rb2 = rrect(slide, RP_X, PANEL_Y + PANEL_H - 0.26, RP_W, 0.26, T.accent_rgb, radius_pct=0)
+    if rb2: set_solid_alpha(rb2, 42)
+
+    # Ambient inner orb
+    oval(slide, RP_X + RP_W * 0.3, PANEL_Y + 0.62, 7, 7, T.accent_rgb, alpha=5)
+
+    # ── Header section inside right panel ────────────────────────────
+    rh_y = PANEL_Y + 0.62
+    ic_s = 1.12
+    ic_x = RP_X + RP_W / 2 - ic_s / 2
+    ic_bg = oval(slide, ic_x, rh_y, ic_s, ic_s, T.accent_rgb)
+    if ic_bg:
+        multi_stop_gradient(ic_bg, [(0, T.accent), (100, T.accent2)], 135)
+        shadow(ic_bg, blur=10, dist=3, alpha=0.38)
+        glow(ic_bg, T.accent.lstrip('#'), radius=14, alpha=0.22)
+    txt(slide, '🎓', ic_x, rh_y + 0.08, ic_s, ic_s * 0.85,
+        font='Calibri', size=18, bold=False, color=T.text_dark_rgb,
+        align=PP_ALIGN.CENTER, rtl=False, vcenter=True)
+
+    hdr_label_y = rh_y + ic_s + 0.14
+    txt(slide, 'بيانات الطالب',
+        RP_X + 0.36, hdr_label_y, RP_W - 0.72, 0.52,
+        font=_FONT, size=12, bold=True, color=T.accent_rgb,
+        align=PP_ALIGN.CENTER, rtl=True, vcenter=True)
+
+    hline(slide, RP_X + RP_W * 0.10, hdr_label_y + 0.58,
+          RP_W * 0.80, T.accent_rgb, thickness=0.05)
+
+    # ── Info rows ─────────────────────────────────────────────────────
     fields = []
-    if req.student_name:    fields.append(("الطالب", req.student_name, "👤"))
-    if req.supervisor:      fields.append(("المشرف", req.supervisor, "🎓"))
-    if req.specialization:  fields.append(("التخصص", req.specialization, "📜"))
-    if _year_str:           fields.append(("السنة", _year_str, "📅"))
-    if not fields and req.student_name:
-        fields = [("الطالب", req.student_name, "👤")]
+    if req.student_name:   fields.append(('👤', 'الطالب',         req.student_name))
+    if req.supervisor:     fields.append(('🎓', 'المشرف',         req.supervisor))
+    if req.co_supervisor:  fields.append(('👨\u200d🏫', 'المشرف المساعد', req.co_supervisor))
+    if req.specialization: fields.append(('📜', 'التخصص',         req.specialization))
+    if _year_str:          fields.append(('📅', 'السنة الجامعية',  _year_str))
 
-    n_fields = min(len(fields), 4)
-    if n_fields > 0:
-        fh = min(1.4, info_zone_h / n_fields - 0.1)
-        fy = info_zone_y + (info_zone_h - (fh * n_fields + 0.08 * (n_fields - 1))) / 2
-        for k, (lbl, val, ico) in enumerate(fields[:4]):
-            ky = fy + k * (fh + 0.08)
-            fb = rrect(slide, cx + 0.5, ky, cw - 1.0, fh, T.bg_rgb, radius_pct=10)
-            if fb:
-                multi_stop_gradient(fb, [(0, T.bg), (50, T.bg2), (100, T.bg)], 0)
-                set_solid_alpha(fb, 65)
-            # Icon
-            txt(slide, ico, cx + cw - 1.35, ky, 0.85, fh,
-                font='Calibri', size=14, bold=False, color=T.accent_rgb,
-                align=PP_ALIGN.CENTER, rtl=False, vcenter=True)
+    rows_y = hdr_label_y + 0.66
+    rows_h = PANEL_H - (rows_y - PANEL_Y) - (0.60 if req.specialization else 0.36)
+    n      = min(len(fields), 5)
+
+    if n > 0:
+        row_gap = 0.14
+        row_h   = (rows_h - row_gap * (n - 1)) / n
+        row_h   = max(0.90, min(1.55, row_h))
+
+        for k, (ico, lbl, val) in enumerate(fields[:5]):
+            ry = rows_y + k * (row_h + row_gap)
+            if ry + row_h > PANEL_Y + PANEL_H - (0.62 if req.specialization else 0.34):
+                break
+
+            # Row background — alternating
+            even = k % 2 == 0
+            rbg = rrect(slide, RP_X + 0.28, ry, RP_W - 0.56, row_h,
+                        T.card_rgb if even else T.bg_rgb, radius_pct=10)
+            if rbg:
+                stops = [(0, T.card), (100, T.bg2)] if even else [(0, T.bg2), (100, T.card)]
+                multi_stop_gradient(rbg, stops, 0)
+                shadow(rbg, blur=5, dist=1, alpha=0.20)
+
+            # Icon circle
+            iis = min(0.58, row_h * 0.60)
+            iic_x = RP_X + RP_W - 0.36 - iis
+            iic_y = ry + (row_h - iis) / 2
+            iic = oval(slide, iic_x, iic_y, iis, iis, T.accent_rgb)
+            if iic:
+                multi_stop_gradient(iic, [(0, T.accent), (100, T.accent2)], 135)
+                shadow(iic, blur=4, dist=1, alpha=0.28)
+            txt(slide, ico, iic_x, iic_y, iis, iis,
+                font='Calibri', size=max(9, int(iis * 11)), bold=False,
+                color=T.text_dark_rgb, align=PP_ALIGN.CENTER, rtl=False, vcenter=True)
+
             # Label chip
-            highlight_chip(slide, cx + cw - 1.35 - 2.4, ky + (fh - 0.34) / 2,
-                           2.2, 0.34, lbl, T, style='ghost')
+            chip_w = 3.5; chip_h = min(0.38, row_h * 0.44)
+            chip_x = iic_x - 0.16 - chip_w
+            chip_y = ry + (row_h - chip_h) / 2
+            chp = rrect(slide, chip_x, chip_y, chip_w, chip_h, T.accent_rgb, radius_pct=50)
+            if chp: set_solid_alpha(chp, 22)
+            txt(slide, lbl, chip_x, chip_y, chip_w, chip_h,
+                font=_FONT, size=max(9, int(chip_h * 11)), bold=False,
+                color=T.accent_rgb, align=PP_ALIGN.CENTER, rtl=True, vcenter=True)
+
+            # Separator
+            sep_x = chip_x - 0.16
+            vline(slide, sep_x, ry + row_h * 0.12, row_h * 0.76, T.muted_rgb, thickness=0.04)
+
             # Value
+            val_w  = sep_x - RP_X - 0.48
             val_fs = _font_for_len(val, 13, 10, 15)
-            txt(slide, val, cx + 0.62, ky, cw - 4.85, fh,
+            val_fs = max(val_fs, min(14, int(row_h * 9.5)))
+            txt(slide, val, RP_X + 0.40, ry, val_w, row_h,
                 font=_FONT, size=val_fs, bold=True, color=T.text_light_rgb,
                 align=PP_ALIGN.RIGHT, rtl=True, vcenter=True)
 
-    # Specialty / discipline tag bottom
+    # ── Specialization pill — bottom of right panel ───────────────────
     if req.specialization:
-        spec_b = rrect(slide, cx + cw * 0.12, title_y + title_h - 0.74,
-                       cw * 0.76, 0.52, T.accent_rgb, radius_pct=40)
-        if spec_b:
-            gradient_fill(spec_b, T.accent_grad1, T.accent_grad2, 0)
-            shadow(spec_b, blur=10, dist=3, alpha=0.35)
-        txt(slide, req.specialization, cx + cw * 0.12, title_y + title_h - 0.74,
-            cw * 0.76, 0.52,
-            font=_FONT, size=11, bold=True, color=T.text_dark_rgb,
+        pil_y = PANEL_Y + PANEL_H - 0.76
+        pil_h = 0.52
+        pil_x = RP_X + RP_W * 0.07
+        pil_w = RP_W * 0.86
+        sp = rrect(slide, pil_x, pil_y, pil_w, pil_h, T.accent_rgb, radius_pct=50)
+        if sp:
+            gradient_fill(sp, T.accent_grad1, T.accent_grad2, 0)
+            shadow(sp, blur=8, dist=2, alpha=0.32)
+        txt(slide, req.specialization, pil_x, pil_y, pil_w, pil_h,
+            font=_FONT, size=10.5, bold=True, color=T.text_dark_rgb,
             align=PP_ALIGN.CENTER, rtl=True, vcenter=True)
 
     return slide

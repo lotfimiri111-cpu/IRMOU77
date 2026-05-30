@@ -174,7 +174,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 /* COLOR PICKER */
 .cpick{display:grid;gap:9px}
 .cpick.classic-colors{grid-template-columns:repeat(4,1fr)}
-.cpick.premium-colors{grid-template-columns:repeat(3,1fr)}
+.cpick.premium-colors{grid-template-columns:repeat(4,1fr)}
+.cpick.canva-colors{grid-template-columns:repeat(4,1fr)}
 .copt input{display:none}
 .ccard{border:3px solid var(--bd);border-radius:10px;overflow:hidden;cursor:pointer;transition:all var(--t)}
 .copt input:checked+.ccard{border-color:var(--gold);box-shadow:0 0 0 3px rgba(198,160,60,.2)}
@@ -363,11 +364,33 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .engine-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;margin-bottom:10px}
 
 @media(max-width:660px){
-  .mpick,.cpick.classic-colors{grid-template-columns:1fr}
-  .cpick.premium-colors{grid-template-columns:1fr}
+  .mpick,.cpick.classic-colors,.cpick.canva-colors,.cpick.premium-colors{grid-template-columns:1fr}
   .g2,.g3{grid-template-columns:1fr}
   .mbox{padding:26px 16px}
   .hdr-right{margin-right:0;width:100%}
+}
+
+/* ── Payment field validation styles ─────────────────────────── */
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
+.pay-field input:invalid,
+.pay-field input.field-error {
+  border-color: var(--err) !important;
+}
+#err-contact {
+  color: var(--err);
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+  padding: 6px 10px;
+  background: rgba(220,50,50,0.08);
+  border-radius: 6px;
+  border-left: 3px solid var(--err);
 }
 </style>
 </head>
@@ -827,12 +850,15 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="card">
     <div class="ch"><div class="ci">🎨</div><h3 data-i18n="model_step_b">الخطوة ب — اختر اللون</h3></div>
     <div id="canva-colors-wrap">
-      <div class="cpick classic-colors" id="cpick-canva"></div>
+      <div style="margin-bottom:8px;font-size:11px;color:rgba(255,255,255,.5);font-weight:600">✨ ألوان Canva الحصرية — 8 لوحات</div>
+      <div class="cpick canva-colors" id="cpick-canva"></div>
     </div>
     <div id="classic-colors-wrap" style="display:none">
+      <div style="margin-bottom:8px;font-size:11px;color:rgba(255,255,255,.5);font-weight:600">📐 ألوان Classic الأكاديمية الرسمية — 12 لوحة</div>
       <div class="cpick classic-colors" id="cpick-classic"></div>
     </div>
     <div id="premium-colors-wrap" style="display:none">
+      <div style="margin-bottom:8px;font-size:11px;color:rgba(255,255,255,.5);font-weight:600">💎 ألوان Premium التنفيذية الحصرية — 7 لوحات</div>
       <div class="cpick premium-colors" id="cpick-premium"></div>
     </div>
     <div id="premium-warn" style="display:none;margin:8px 0;padding:9px 13px;background:rgba(255,180,0,.13);border:1px solid rgba(255,180,0,.35);border-radius:8px;font-size:12px;color:#f0c060">
@@ -987,13 +1013,13 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
               <div class="pm-check">✓</div>
               <div class="pm-icon">🏛️</div>
               <div class="pm-name">CCP</div>
-              <div class="pm-num">CCP: 000 12345678 / Clé 67</div>
+              <div class="pm-num">CCP: 0029292260 / Clé 15</div>
             </div>
             <div class="pm-card" id="pm-baridimob" onclick="selectMethod('baridimob')">
               <div class="pm-check">✓</div>
               <div class="pm-icon">📱</div>
               <div class="pm-name">BaridiMob</div>
-              <div class="pm-num">0799 000 000</div>
+              <div class="pm-num">0558312555</div>
             </div>
           </div>
         </div>
@@ -1008,12 +1034,13 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
             <input type="text" id="pay-name" placeholder="كما هو في وثائقك الجامعية" />
           </div>
           <div class="pay-field">
-            <label>البريد الإلكتروني</label>
-            <input type="text" id="pay-email" placeholder="لإرسال كود التفعيل (اختياري)" />
+            <label>البريد الإلكتروني <span style="color:var(--err)">*</span> <span style="font-size:10px;color:var(--muted)">(أو الهاتف)</span></label>
+            <input type="text" id="pay-email" placeholder="example@gmail.com" oninput="validateContactFields()" />
+            <div class="ferr-msg" id="err-contact" style="display:none;color:var(--err);font-size:11px;margin-top:4px">يجب إدخال البريد الإلكتروني أو رقم الهاتف على الأقل</div>
           </div>
           <div class="pay-field">
-            <label>رقم الهاتف</label>
-            <input type="text" id="pay-phone" placeholder="0XX XXX XXXX" />
+            <label>رقم الهاتف <span style="color:var(--err)">*</span> <span style="font-size:10px;color:var(--muted)">(أو البريد)</span></label>
+            <input type="text" id="pay-phone" placeholder="0XX XXX XXXX" oninput="validateContactFields()" />
           </div>
         </div>
         <button class="pay-submit" id="payNext1Btn" onclick="payGoStep2()">التالي — رفع الوصل →</button>
@@ -1510,24 +1537,44 @@ function toggleSlide(id) {
 // ═══════════════════════════════════════════════════════
 // PALETTES
 // ═══════════════════════════════════════════════════════
-const CLASSIC_PALETTES = [
-  {id:'navy_gold',    name:'أزرق ملكي ذهبي',   desc:'كلاسيكي أكاديمي — العلوم الإنسانية والقانون',     bg1:'#07172F',bg2:'#0E274D',ac:'#C6A03C',bars:['#C6A03C','#1A4072','#E8C97B','#2A5598']},
-  {id:'dark_teal',    name:'تيل داكن',          desc:'عصري — العلوم الطبيعية والتقنية',                  bg1:'#061A28',bg2:'#044E6E',ac:'#00D4AA',bars:['#00D4AA','#044E6E','#0993C3','#67E8D3']},
-  {id:'burgundy',     name:'بورغندي',            desc:'فاخر — الأدب والتاريخ والفلسفة',                  bg1:'#3A0018',bg2:'#6B1537',ac:'#F0B8CC',bars:['#F0B8CC','#6B1537','#CC3D73','#FAD4E2']},
-  {id:'forest',       name:'أخضر غابي',         desc:'طبيعي — البيئة والزراعة والبيولوجيا',             bg1:'#0F2D1E',bg2:'#1E4D36',ac:'#86BB56',bars:['#86BB56','#1E4D36','#4A996B','#B4D984']},
-  {id:'midnight_purple',name:'بنفسجي ليلي',    desc:'إبداعي — التعليم والسيكولوجيا',                   bg1:'#12052E',bg2:'#2D106B',ac:'#C07AFF',bars:['#C07AFF','#2D106B','#7B3FE0','#DDB3FF']},
-  {id:'charcoal_orange',name:'فحمي برتقالي',   desc:'جريء — الإدارة والهندسة',                         bg1:'#1A1A2E',bg2:'#2D2D44',ac:'#FF6B35',bars:['#FF6B35','#2D2D44','#FFA070','#E54E1A']},
-  {id:'ice_blue',     name:'أزرق ثلجي',        desc:'نظيف — الاقتصاد والمالية والإحصاء',               bg1:'#0A254A',bg2:'#1A4A8A',ac:'#4AB3FF',bars:['#4AB3FF','#1A4A8A','#8ED0FF','#0A254A']},
-  {id:'sand_gold',    name:'ذهبي رملي',         desc:'دافئ — الشريعة والعلوم الإسلامية',               bg1:'#2C1A0E',bg2:'#5C3D20',ac:'#C8861F',bars:['#C8861F','#5C3D20','#E8B964','#2C1A0E']},
-];
-const PREMIUM_PALETTES = [
-  {id:'noir',  name:'Noir Académique',desc:'أكاديمي فاخر — ذهبي داكن · Palatino',bg1:'#0A0C12',bg2:'#131620',ac:'#C9A84C',bars:['#C9A84C','#9BA8B5','#E8C97A','#5A6B7A']},
-  {id:'atlas', name:'Atlas Corporate',desc:'استشاري — سيان · McKinsey style',    bg1:'#040D1E',bg2:'#082040',ac:'#00D4FF',bars:['#00D4FF','#FF6B00','#7AEAFF','#0A4A8A']},
-  {id:'sakura',name:'Sakura Créative',desc:'إبداعي — مرجاني · توكيو ستوديو',    bg1:'#1C0E2B',bg2:'#2D1B45',ac:'#FF5C5C',bars:['#FF5C5C','#8B5CF6','#FFAAAA','#4C1D80']},
+// ── ألوان Canva (تصميم جرافيكي — 8 ألوان حصرية) ──────────────────────
+const CANVA_PALETTES = [
+  {id:'canva_ocean',   name:'أوشن Canva',      desc:'أزرق مائي نيون — التصاميم الحديثة',          bg1:'#030D1A',bg2:'#0A2A42',ac:'#00C2FF',bars:['#00C2FF','#0A2A42','#38D9FF','#041A30']},
+  {id:'canva_violet',  name:'بنفسج Canva',     desc:'بنفسجي حيوي — التقنية والإبداع',             bg1:'#0D0818',bg2:'#28154A',ac:'#A855F7',bars:['#A855F7','#28154A','#C084FC','#180F2E']},
+  {id:'canva_mint',    name:'نعناع Canva',     desc:'أخضر نعناعي — الصحة والبيئة',               bg1:'#011A12',bg2:'#093D28',ac:'#10B981',bars:['#10B981','#093D28','#34D399','#042018']},
+  {id:'canva_sunset',  name:'غروب Canva',      desc:'برتقالي حار — الإدارة والأعمال',             bg1:'#1A0A00',bg2:'#3D1800',ac:'#FF6B35',bars:['#FF6B35','#3D1800','#FFC080','#2E1400']},
+  {id:'canva_rose',    name:'وردي Canva',      desc:'وردي ليلي — السيكولوجيا والتربية',           bg1:'#18050E',bg2:'#3A0F20',ac:'#F43F5E',bars:['#F43F5E','#3A0F20','#FB7185','#280812']},
+  {id:'canva_amber',   name:'عنبر Canva',      desc:'ذهبي ناري — العلوم الإسلامية والشريعة',     bg1:'#160E00',bg2:'#3A2200',ac:'#F59E0B',bars:['#F59E0B','#3A2200','#FCD34D','#241500']},
+  {id:'canva_indigo',  name:'نيلي Canva',      desc:'نيلي كوني — الفيزياء والرياضيات',           bg1:'#04061A',bg2:'#12184A',ac:'#6366F1',bars:['#6366F1','#12184A','#818CF8','#080E2E']},
+  {id:'canva_slate',   name:'رمادي Canva',     desc:'رمادي أنيق — الاقتصاد والمالية',            bg1:'#080C14',bg2:'#1A2540',ac:'#94A3B8',bars:['#94A3B8','#1A2540','#64748B','#101828']},
 ];
 
-// Canva palettes = same as Classic palettes (same 8 colors, new engine)
-const CANVA_PALETTES = CLASSIC_PALETTES;
+// ── ألوان Classic (أكاديمي رسمي — 12 لون حصري) ──────────────────────
+const CLASSIC_PALETTES = [
+  {id:'navy_gold',          name:'أزرق ملكي ذهبي',    desc:'الأكاديمي الكلاسيكي — الحقوق والإنسانيات',   bg1:'#07172F',bg2:'#0E274D',ac:'#C6A03C',bars:['#C6A03C','#1A4072','#E8C97B','#2A5598']},
+  {id:'classic_royal',      name:'أزرق ملكي رسمي',   desc:'رسمي عريق — الإدارة والسياسة',              bg1:'#001233',bg2:'#023490',ac:'#DAA520',bars:['#DAA520','#023490','#B8860B','#001840']},
+  {id:'burgundy',           name:'بورغندي',           desc:'فاخر — الأدب والتاريخ والفلسفة',             bg1:'#3A0018',bg2:'#6B1537',ac:'#F0B8CC',bars:['#F0B8CC','#6B1537','#CC3D73','#FAD4E2']},
+  {id:'classic_maroon',     name:'كستنائي ذهبي',     desc:'أكاديمي تقليدي — العلوم الإنسانية',          bg1:'#1A0000',bg2:'#4A0015',ac:'#C0963C',bars:['#C0963C','#4A0015','#E0B860','#280005']},
+  {id:'dark_teal',          name:'تيل داكن',          desc:'عصري — العلوم الطبيعية والتقنية',            bg1:'#061A28',bg2:'#044E6E',ac:'#00D4AA',bars:['#00D4AA','#044E6E','#0993C3','#67E8D3']},
+  {id:'classic_slate_blue', name:'أزرق رمادي رسمي',  desc:'مؤسسي — الاقتصاد والمحاسبة',               bg1:'#0F1622',bg2:'#1E3255',ac:'#7EADCF',bars:['#7EADCF','#1E3255','#5B8DB8','#161E35']},
+  {id:'forest',             name:'أخضر غابي',         desc:'طبيعي — البيئة والزراعة والبيولوجيا',        bg1:'#0F2D1E',bg2:'#1E4D36',ac:'#86BB56',bars:['#86BB56','#1E4D36','#4A996B','#B4D984']},
+  {id:'classic_olive',      name:'زيتوني أكاديمي',   desc:'رزين — الزراعة والبيئة والجغرافيا',          bg1:'#0F1A00',bg2:'#2E4E00',ac:'#B5C84E',bars:['#B5C84E','#2E4E00','#8B9E2A','#1E3300']},
+  {id:'ice_blue',           name:'أزرق ثلجي',        desc:'نظيف — المالية والإحصاء',                    bg1:'#0A254A',bg2:'#1A4A8A',ac:'#4AB3FF',bars:['#4AB3FF','#1A4A8A','#8ED0FF','#0A254A']},
+  {id:'sand_gold',          name:'ذهبي رملي',         desc:'دافئ — الشريعة والعلوم الإسلامية',          bg1:'#2C1A0E',bg2:'#5C3D20',ac:'#C8861F',bars:['#C8861F','#5C3D20','#E8B964','#2C1A0E']},
+  {id:'midnight_purple',    name:'بنفسجي ليلي',       desc:'إبداعي — علم النفس والتربية',               bg1:'#12052E',bg2:'#2D106B',ac:'#C07AFF',bars:['#C07AFF','#2D106B','#7B3FE0','#DDB3FF']},
+  {id:'charcoal_orange',    name:'فحمي برتقالي',      desc:'جريء — الهندسة والإدارة',                   bg1:'#1A1A2E',bg2:'#2D2D44',ac:'#FF6B35',bars:['#FF6B35','#2D2D44','#FFA070','#E54E1A']},
+];
+
+// ── ألوان Premium (تنفيذي راقي — 7 ألوان حصرية) ──────────────────────
+const PREMIUM_PALETTES = [
+  {id:'noir',               name:'Noir Académique',   desc:'أكاديمي فاخر جداً — ذهبي داكن',             bg1:'#0A0C12',bg2:'#131620',ac:'#C9A84C',bars:['#C9A84C','#9BA8B5','#E8C97A','#5A6B7A']},
+  {id:'premium_obsidian',   name:'Obsidian Premium',  desc:'أسود عميق — عرض المجالس التنفيذية',         bg1:'#050508',bg2:'#141420',ac:'#E8D5A3',bars:['#E8D5A3','#141420','#F5EAC8','#0C0C14']},
+  {id:'atlas',              name:'Atlas Corporate',   desc:'استشاري McKinsey — سيان أزرق',              bg1:'#040D1E',bg2:'#082040',ac:'#00D4FF',bars:['#00D4FF','#FF6B00','#7AEAFF','#0A4A8A']},
+  {id:'premium_royal_night',name:'Royal Night',       desc:'ليل ملكي — الدراسات الاستراتيجية',         bg1:'#000A1A',bg2:'#001840',ac:'#4FC3F7',bars:['#4FC3F7','#001840','#81D4FA','#000E22']},
+  {id:'sakura',             name:'Sakura Créative',   desc:'مرجاني إبداعي — توكيو ستوديو',             bg1:'#1C0E2B',bg2:'#2D1B45',ac:'#FF5C5C',bars:['#FF5C5C','#8B5CF6','#FFAAAA','#4C1D80']},
+  {id:'premium_emerald',    name:'Emerald Prestige',  desc:'زمردي راقٍ — الأعمال والاستدامة',          bg1:'#020F08',bg2:'#082818',ac:'#50FA7B',bars:['#50FA7B','#082818','#80FFAA','#041A10']},
+  {id:'premium_copper',     name:'Copper Executive',  desc:'نحاسي تنفيذي — الهندسة الصناعية',         bg1:'#0E0800',bg2:'#2A1800',ac:'#D4924A',bars:['#D4924A','#2A1800','#B87333','#1C1000']},
+];
 
 (function buildPickers(){
   function renderPalettes(containerId, palettes, checked0=false) {
@@ -1558,18 +1605,17 @@ function onPaletteChange(){
   const palMap = {canva:CANVA_PALETTES, classic:CLASSIC_PALETTES, premium:PREMIUM_PALETTES};
   const all = palMap[eng] || CANVA_PALETTES;
   const sel = document.querySelector('input[name="palette"]:checked')?.value;
-  const p   = all.find(x=>x.id===sel) || all[0];
+  // إذا كان اللون المختار لا ينتمي للمحرك الحالي — اختر الأول
+  const validIds = new Set(all.map(x=>x.id));
+  const p = (sel && validIds.has(sel)) ? all.find(x=>x.id===sel) : all[0];
   if(!p) return;
   const prev = document.getElementById('color-preview');
   prev.style.background=`linear-gradient(135deg,${p.bg1},${p.bg2})`;
-  const fam = eng==='canva' ? (
-    ['navy_gold','forest','midnight_purple','sand_gold'].includes(p.id) ? 'NOIR' :
-    ['dark_teal','charcoal_orange','burgundy'].includes(p.id) ? 'VIVID' : 'MINIMAL'
-  ) : '';
-  const famBadge = fam ? `<span style="background:rgba(255,255,255,.15);padding:1px 6px;border-radius:99px;font-size:9px;font-weight:700">${fam}</span>` : '';
-  prev.innerHTML=`<div style="display:flex;gap:3px;align-items:flex-end">${p.bars.map((c,j)=>`<div style="width:11px;height:${[17,11,14,9][j]}px;background:${c};border-radius:2px"></div>`).join('')}</div>
+  const ENGINE_LABELS = {canva:'✨ Canva', classic:'📐 Classic', premium:'💎 Premium'};
+  const engBadge = `<span style="background:rgba(255,255,255,.15);padding:1px 7px;border-radius:99px;font-size:9px;font-weight:700;letter-spacing:.5px">${ENGINE_LABELS[eng]||''}</span>`;
+  prev.innerHTML=`<div style="display:flex;gap:3px;align-items:flex-end;margin-left:6px">${p.bars.map((c,j)=>`<div style="width:11px;height:${[17,11,14,9][j]}px;background:${c};border-radius:2px"></div>`).join('')}</div>
   <div style="color:#fff;font-size:11px;font-weight:700;margin-right:8px">${p.name}</div>
-  ${famBadge}
+  ${engBadge}
   <div style="color:rgba(255,255,255,.6);font-size:9px;margin-right:auto">${p.desc}</div>`;
 }
 
@@ -1681,7 +1727,12 @@ function getKPIs(){return Array.from(document.querySelectorAll('#kgrid .kcard'))
 function collect(){
   const v=id=>document.getElementById(id)?.value.trim()||'';
   const eng=document.querySelector('input[name="engine"]:checked')?.value||'canva';
-  const theme=document.querySelector('input[name="palette"]:checked')?.value||(eng==='classic'?'navy_gold':'noir');
+  // اختيار اللون الصحيح حسب المحرك
+  const palMap2 = {canva:CANVA_PALETTES, classic:CLASSIC_PALETTES, premium:PREMIUM_PALETTES};
+  const engPals  = palMap2[eng] || CANVA_PALETTES;
+  const selVal   = document.querySelector('input[name="palette"]:checked')?.value;
+  const validIds2= new Set(engPals.map(x=>x.id));
+  const theme    = (selVal && validIds2.has(selVal)) ? selVal : engPals[0].id;
   return{
     studentName:v('studentName'),studentId:v('studentId'),major:v('major'),
     level:document.getElementById('level').value,year:v('year'),
@@ -2124,8 +2175,8 @@ function showEnginePanel(name, btn) {
 }
 
 // ══ PAYMENT OVERLAY ══
-const CCP_INFO=`<div class="pi-row"><span class="pi-label">رقم الحساب CCP</span><span class="pi-val">000 12345678</span></div><div class="pi-row"><span class="pi-label">المفتاح / Clé</span><span class="pi-val">67</span></div><div class="pi-row"><span class="pi-label">اسم المستفيد</span><span class="pi-val">مذكرتي Pro</span></div><div class="pi-row"><span class="pi-label">المبلغ</span><span class="pi-val">800 دج</span></div>`;
-const BARID_INFO=`<div class="pi-row"><span class="pi-label">رقم BaridiMob</span><span class="pi-val">0799 000 000</span></div><div class="pi-row"><span class="pi-label">اسم المستفيد</span><span class="pi-val">مذكرتي Pro</span></div><div class="pi-row"><span class="pi-label">المبلغ</span><span class="pi-val">800 دج</span></div>`;
+const CCP_INFO=`<div class="pi-row"><span class="pi-label">رقم الحساب CCP</span><span class="pi-val">0029292260</span></div><div class="pi-row"><span class="pi-label">المفتاح / Clé</span><span class="pi-val">15</span></div><div class="pi-row"><span class="pi-label">اسم المستفيد</span><span class="pi-val">LOTFI MIRI</span></div><div class="pi-row"><span class="pi-label">المبلغ</span><span class="pi-val">800 دج</span></div>`;
+const BARID_INFO=`<div class="pi-row"><span class="pi-label">رقم BaridiMob</span><span class="pi-val">0558312555</span></div><div class="pi-row"><span class="pi-label">اسم المستفيد</span><span class="pi-val">LOTFI MIRI</span></div><div class="pi-row"><span class="pi-label">المبلغ</span><span class="pi-val">800 دج</span></div>`;
 
 function openPayOv(){
   if(!_currentPresId){alert('يجب إنشاء العرض أولاً');return;}
@@ -2169,9 +2220,57 @@ function selectMethod(method){
   const box=document.getElementById('payInfoBox'), content=document.getElementById('payInfoContent');
   box.style.display='block'; content.innerHTML=method==='ccp'?CCP_INFO:BARID_INFO;
 }
+function _showPayError(id,msg){
+  let el=document.getElementById(id);
+  if(!el){el=document.createElement('div');el.id=id;el.style.cssText='color:var(--err);font-size:11px;margin-top:6px;font-weight:600;text-align:center;';
+  const sec=document.querySelector('.pay-methods');if(sec)sec.after(el);}
+  el.textContent=msg;el.style.display='block';setTimeout(()=>{if(el)el.style.display='none';},3500);
+}
+function _showPayFieldError(fieldId,msg){
+  const el=document.getElementById(fieldId);
+  if(!el)return;
+  el.style.border='2px solid var(--err)';el.focus();
+  let errEl=el.nextElementSibling;
+  if(!errEl||!errEl.classList.contains('ferr-msg')){errEl=document.createElement('div');errEl.className='ferr-msg';el.after(errEl);}
+  errEl.textContent=msg;errEl.style.display='block';
+  el.addEventListener('input',function once(){el.style.border='';errEl.style.display='none';el.removeEventListener('input',once);},{once:true});
+}
+function validateContactFields(){
+  const email=document.getElementById('pay-email').value.trim();
+  const phone=document.getElementById('pay-phone').value.trim();
+  const errEl=document.getElementById('err-contact');
+  if(!email&&!phone){
+    if(errEl) errEl.style.display='block';
+  } else {
+    if(errEl) errEl.style.display='none';
+  }
+}
 function payGoStep2(){
-  if(!_selectedMethod){alert('اختر طريقة الدفع');return;}
-  if(!document.getElementById('pay-name').value.trim()){alert('الاسم الكامل مطلوب');return;}
+  if(!_selectedMethod){
+    // اهتزاز بصري لأزرار الدفع
+    document.querySelectorAll('.pm-card').forEach(c=>{
+      c.style.animation='shake 0.4s';
+      setTimeout(()=>c.style.animation='',500);
+    });
+    _showPayError('pay-method-err','يجب اختيار طريقة الدفع');
+    return;
+  }
+  const name=document.getElementById('pay-name').value.trim();
+  if(!name){_showPayFieldError('pay-name','الاسم الكامل مطلوب');return;}
+  const email=document.getElementById('pay-email').value.trim();
+  const phone=document.getElementById('pay-phone').value.trim();
+  if(!email&&!phone){
+    const errEl=document.getElementById('err-contact');
+    if(errEl){errEl.style.display='block';errEl.textContent='يجب إدخال البريد الإلكتروني أو رقم الهاتف على الأقل';}
+    document.getElementById('pay-email').focus();
+    return;
+  }
+  if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    _showPayFieldError('pay-email','البريد الإلكتروني غير صحيح');return;
+  }
+  if(phone && !/^0[5-7]\d{8}$/.test(phone.replace(/\s/g,''))){
+    _showPayFieldError('pay-phone','رقم الهاتف غير صحيح (مثال: 0551234567)');return;
+  }
   document.getElementById('payStep1').style.display='none';
   document.getElementById('payStep2').style.display='';
   document.getElementById('ps1').className='ps-step done';
@@ -2198,7 +2297,8 @@ async function submitOrder(){
   const name=document.getElementById('pay-name').value.trim();
   const email=document.getElementById('pay-email').value.trim();
   const phone=document.getElementById('pay-phone').value.trim();
-  if(!name){alert('الاسم الكامل مطلوب');return;}
+  if(!name){_showPayFieldError('pay-name','الاسم الكامل مطلوب');return;}
+  if(!email&&!phone){const e=document.getElementById('err-contact');if(e){e.style.display='block';e.textContent='يجب إدخال البريد الإلكتروني أو رقم الهاتف';}return;}
   const btn=document.getElementById('paySubmitBtn');
   btn.disabled=true; btn.textContent='⏳ جاري الإرسال...';
   try{

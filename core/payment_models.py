@@ -79,6 +79,11 @@ def get_db() -> sqlite3.Connection:
 
 
 def init_db():
+    # Ensure storage subdirectories exist (on persistent disk if configured)
+    storage_dir = os.environ.get("STORAGE_DIR", "")
+    if storage_dir:
+        for sub in ("receipts", "pptx", os.path.join("pptx", "orders")):
+            os.makedirs(os.path.join(storage_dir, sub), exist_ok=True)
     conn = get_db()
     conn.executescript(SCHEMA_SQL)
     conn.commit()
@@ -204,11 +209,27 @@ def reject_order(order_id: str, admin_note: str = ""):
 
 
 def store_pptx(order_id: str, path: str):
+    """
+    Copy the generated PPTX into the persistent storage directory
+    (under pptx/orders/) so it survives redeployments on Render Free.
+    The source `path` may be in the ephemeral project dir — we always
+    save a durable copy to STORAGE_DIR/pptx/orders/<order_id>.pptx.
+    """
+    import shutil as _shutil
+    storage_dir = os.environ.get(
+        "STORAGE_DIR",
+        os.path.join(os.path.dirname(__file__), "..", "storage")
+    )
+    orders_dir = os.path.join(storage_dir, "pptx", "orders")
+    os.makedirs(orders_dir, exist_ok=True)
+    dest = os.path.join(orders_dir, f"{order_id}.pptx")
+    if os.path.abspath(path) != os.path.abspath(dest):
+        _shutil.copy2(path, dest)
     conn = get_db()
     try:
         conn.execute(
             "UPDATE orders SET pptx_path=?, updated_at=? WHERE id=?",
-            (path, time.time(), order_id),
+            (dest, time.time(), order_id),
         )
         conn.commit()
     finally:

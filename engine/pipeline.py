@@ -105,6 +105,78 @@ class ExportResult:
     elapsed: float = 0.0
 
 
+def _add_branded_blank_pages(prs, req, theme, n: int = 3) -> None:
+    """
+    يضيف صفحات فارغة بتصميم متطابق لتصميم العرض
+    حتى يتمكن الطالب من إضافة محتوى إضافي مع الحفاظ على الهوية البصرية
+    """
+    from engine.primitives import (
+        W, H, rect, rrect, oval, bg, gradient_rect,
+        diamond, decorative_dots, txt, blank_slide,
+        multi_stop_gradient, set_solid_alpha, decorative_corner,
+        smart_header as _sh
+    )
+    from engine.slides import _FONT
+    HEADER_H = 2.9
+    from pptx.enum.text import PP_ALIGN
+
+    T = theme
+    # استخدام نفس نمط الخلفية "a" المستخدم في معظم الشرائح
+    for i in range(n):
+        slide = blank_slide(prs)
+
+        # ── خلفية متطابقة مع الشرائح الأخرى (نمط a) ─────────────────
+        bg(slide, T.bg_rgb)
+        gradient_rect(slide, 0, 0, W, H, T.grad1, T.grad2, angle=135)
+        decorative_corner(slide, T, "tr", 4.0)
+        decorative_corner(slide, T, "bl", 3.5)
+        decorative_dots(slide, 1.2, H - 4.2, 5, 3, 0.16, 0.42, T.accent_rgb, alpha=12)
+
+        # ── رأس الصفحة (نفس style الشرائح) ──────────────────────────
+        _sh(slide, T, "صفحة إضافية", "", None, None, style="gradient", font=_FONT)
+
+        # ── منطقة كتابة فارغة وأنيقة ────────────────────────────────
+        CY0 = HEADER_H + 0.32
+        CH  = H - CY0 - 0.3
+        area_x = 1.2
+        area_y = CY0 + 0.3
+        area_w = W - 2.4
+        area_h = CH - 0.6
+
+        # بطاقة شفافة للكتابة عليها
+        card = rrect(slide, area_x, area_y, area_w, area_h, T.bg2_rgb, radius_pct=8)
+        if card:
+            set_solid_alpha(card, 28)
+
+        # إطار خفيف
+        border = rrect(slide, area_x, area_y, area_w, area_h, T.accent_rgb, radius_pct=8)
+        if border:
+            set_solid_alpha(border, 18)
+
+        # نص إرشادي خفيف في المنتصف
+        txt(
+            slide,
+            "✦  هذه الصفحة فارغة لإضافة محتوى إضافي  ✦",
+            area_x + 1.0, area_y + area_h / 2 - 0.55,
+            area_w - 2.0, 1.1,
+            font=_FONT, size=13, bold=False, italic=True,
+            color=T.muted_rgb,
+            align=PP_ALIGN.CENTER, rtl=True, vcenter=True,
+        )
+
+        # خط أفقي خفيف عند منتصف المنطقة الكتابية
+        mid_y = area_y + area_h / 2 + 0.3
+        divider = rect(slide, area_x + area_w * 0.18, mid_y, area_w * 0.64, 0.025, T.accent_rgb)
+        if divider:
+            multi_stop_gradient(divider, [(0, T.bg), (50, T.muted), (100, T.bg)], 0)
+
+        # ── شريط سفلي متطابق ─────────────────────────────────────────
+        bbar = rect(slide, 0, H - 0.28, W, 0.28, T.accent_rgb)
+        if bbar:
+            multi_stop_gradient(bbar, [(0, T.bg), (30, T.accent), (70, T.accent2), (100, T.bg)], 0)
+
+
+
 class PPTXExportPipeline:
 
     def __init__(self):
@@ -211,6 +283,11 @@ class PPTXExportPipeline:
         run("future",          cfg.future and bool(req.future_work),     make_future)
         run("references",      cfg.references and bool(req.references),  make_references)
         run("thankyou",        cfg.thankyou,                             make_final)
+
+        # صفحات فارغة بتصميم متطابق
+        stages.append("blank_extra_pages")
+        _add_branded_blank_pages(prs, req, theme, n=3)
+        count += 3
 
         return count
 
